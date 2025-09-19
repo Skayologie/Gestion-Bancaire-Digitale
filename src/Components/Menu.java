@@ -14,6 +14,8 @@ import services.TransactionService;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static Components.PasswordHasher.checkPassword;
 import static java.lang.System.exit;
@@ -154,11 +156,33 @@ public class Menu {
         System.out.print("🔑 Address : ");
         String address = input.nextLine();
 
-        System.out.print("📧 Email    : ");
-        String email = input.nextLine();
+        String email = "";
+        String password = "";
+        boolean fullMatchEmail = false;
+        boolean fullMatchPassword = false;
+        while(!fullMatchEmail){
+            System.out.print("📧 Email    : ");
+            email = input.nextLine();
+            String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+            Pattern pattern = Pattern.compile(emailRegex);
+            Matcher matcher = pattern.matcher(email);
+            fullMatchEmail = matcher.matches();
+            if(!fullMatchEmail){
+                System.out.println("Email is not valid , try again (EX : 'example@gmail.com')");
+            }
+        }
+        while(!fullMatchPassword){
+            System.out.print("🔑 Password : ");
+            password = input.nextLine();
+            int min = 6;
+            if(password.length() < min){
+                System.out.println("Password is not valid , min length is 6 chars");
+            }else{
+                fullMatchPassword = true;
+            }
+        }
 
-        System.out.print("🔑 Password : ");
-        String password = input.nextLine();
+
 
         User user = new User(UUID.randomUUID(),fullname,email,address,password);
 
@@ -404,14 +428,24 @@ public class Menu {
         String OldPassword = scanner.nextLine();
         backToMenu(OldPassword);
         if(checkPassword(OldPassword,CurrentUser.getPassword())){
-            System.out.print("New password :");
-            String NewPassword = scanner.nextLine();
-            backToMenu(NewPassword);
-            CurrentUser.setPassword(NewPassword);
-            System.out.println("Your password has been updated successfully !");
-            ShowMenu(CurrentUser);
+            boolean fullMatchPassword = false;
+            String NewPassword = "";
+            while(!fullMatchPassword){
+                System.out.print("New password :");
+                NewPassword = scanner.nextLine();
+                int min = 6;
+                if(NewPassword.length() < min){
+                    System.out.println("Password is not valid , min length is 6 chars");
+                }else{
+                    fullMatchPassword = true;
+                    backToMenu(NewPassword);
+                    CurrentUser.setPassword(NewPassword);
+                    System.out.println("Your password has been updated successfully !");
+                    ShowMenu(CurrentUser);
+                }
+            }
         }else{
-            System.out.print("The password is wrong try again !");
+            System.out.println("The password is wrong try again !");
             ShowUpdatePassword();
         }
     }
