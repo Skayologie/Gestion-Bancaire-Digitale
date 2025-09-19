@@ -52,10 +52,7 @@ public class TransactionRepository implements TransactionRepositoryInt {
         return false;
     }
 
-
-
-    @Override
-    public HashMap<Integer, Transaction> getAllTransactions() {
+    public static HashMap<Integer, Transaction> getAllTransactions() {
         return Transactions;
     }
 }

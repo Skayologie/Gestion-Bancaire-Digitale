@@ -6,7 +6,7 @@ import modules.User;
 import java.util.*;
 
 public class InMemoryUserRepository implements UserRepository {
-    private static HashMap<Integer, User> Users = new HashMap<>();
+    public static HashMap<Integer, User> Users = new HashMap<>();
 
     @Override
     public boolean save(User user) {

@@ -19,6 +19,7 @@ import java.util.regex.Pattern;
 
 import static Components.PasswordHasher.checkPassword;
 import static java.lang.System.exit;
+import static repositories.TransactionRepository.getAllTransactions;
 
 public class Menu {
     private boolean isConnected;
@@ -67,16 +68,17 @@ public class Menu {
                     System.out.println("===========================================");
                     System.out.println("  🔐 Logged in as: " + user.getFullName());
                     System.out.println("===========================================");
-                    System.out.println("  1️⃣  Create account");
-                    System.out.println("  2️⃣  List my accounts");
-                    System.out.println("  3️⃣  Deposit");
-                    System.out.println("  4️⃣  Withdraw");
-                    System.out.println("  5️⃣  Transfer");
-                    System.out.println("  6️⃣  Update profile");
-                    System.out.println("  7️⃣  Change password");
-                    System.out.println("  8️⃣  Close account");
-                    System.out.println("  9️⃣  Logout");
-                    System.out.println("  0️⃣  Exit");
+                    System.out.println("  1️⃣    Create account");
+                    System.out.println("  2️⃣    List my accounts");
+                    System.out.println("  3️⃣    Deposit");
+                    System.out.println("  4️⃣    Withdraw");
+                    System.out.println("  5️⃣    Transfer");
+                    System.out.println("  6️⃣    Update profile");
+                    System.out.println("  7️⃣    Change password");
+                    System.out.println("  8️⃣    Close account");
+                    System.out.println("  9️⃣    Logout");
+                    System.out.println("  1️0️⃣  Transactions History");
+                    System.out.println("  0️⃣    Exit");
                     System.out.println("===========================================");
                     System.out.print("➤ Choose an option: ");
 
@@ -108,6 +110,9 @@ public class Menu {
                             break;
                         case 9 :
                             LogOut();
+                            break;
+                        case 10:
+                            ShowHistoryTransaction();
                             break;
                         case 0 :
                             System.out.println("Exiting the program ...");
@@ -228,12 +233,13 @@ public class Menu {
 
     public void ShowDeposit(){
         try{
+            Scanner input = new Scanner(System.in);
             TransactionRepository TransactionRepo = new TransactionRepository();
             TransactionService TransactionService = new TransactionService(TransactionRepo);
 
             System.out.println("0 : Menu ");
             System.out.print("Enter Your Account Number : ");
-            String AccountID = input.next();
+            String AccountID = input.nextLine();
             backToMenu(AccountID);
 
             System.out.print("Amount That you want to deposit  : ");
@@ -254,6 +260,9 @@ public class Menu {
             System.out.println("   ✘ Deposit Amount Value is Not Valid!     ");
             System.out.println("   🔄 Please try again later.               ");
             System.out.println("╚══════════════════════════════════════════╝");
+        } catch (InputMismatchException e) {
+            System.out.println("There is a problem , try again !");
+            ShowDeposit();
         }
     }
 
@@ -453,5 +462,54 @@ public class Menu {
         CurrentUser = null;
         isConnected = false;
         ShowMenu(CurrentUser);
+    }
+
+    public void ShowHistoryTransaction(){
+        System.out.println("===== ALL TRANSACTIONS =====");
+        for (int i = 0; i < getAllTransactions().size(); i++) {
+            Transaction transaction = getAllTransactions().get(i);
+
+            System.out.println("----------------------------");
+            System.out.println("Transaction ID : " + transaction.getId());
+
+            if (transaction.getType() == TransactionsType.TRANSFEROUT) {
+                System.out.println("TRANSFER OPERATION");
+                System.out.println("Receiver Account RIB : " + transaction.getCounterpartyAccountId());
+
+                for (int j = 0; j < AccountRepository.Accounts.size(); j++) {
+                    if (Objects.equals(AccountRepository.Accounts.get(i).getAccountId(), transaction.getCounterpartyAccountId())) {
+
+                        for (int k = 0; k < InMemoryUserRepository.Users.size(); k++) {
+                            if (InMemoryUserRepository.Users.get(k).getId() == AccountRepository.Accounts.get(i).getOwnerUserId()) {
+                                System.out.println("Receiver Name  : " + InMemoryUserRepository.Users.get(k).getFullName());
+                                System.out.println("Receiver Email : " + InMemoryUserRepository.Users.get(k).getEmail());
+                            }
+                        }
+                    }
+                }
+            }else if (transaction.getType() == TransactionsType.DEPOSIT) {
+                    System.out.println("DEPOSIT OPERATION");
+                    for (int j = 0; j < AccountRepository.Accounts.size(); j++) {
+                        if (Objects.equals(AccountRepository.Accounts.get(i).getAccountId(), transaction.getCounterpartyAccountId())) {
+
+                            for (int k = 0; k < InMemoryUserRepository.Users.size(); k++) {
+                                if (InMemoryUserRepository.Users.get(k).getId() == AccountRepository.Accounts.get(i).getOwnerUserId()) {
+                                    System.out.println("Receiver Name  : " + InMemoryUserRepository.Users.get(k).getFullName());
+                                    System.out.println("Receiver Email : " + InMemoryUserRepository.Users.get(k).getEmail());
+                                }
+                            }
+                        }
+                    }
+            }  else if (transaction.getType() == TransactionsType.TRANSFERIN)  {
+                System.out.println("INTERNAL TRANSACTION");
+                System.out.println("From Account : " + transaction.getAccountId());
+                System.out.println("To Account   : " + transaction.getCounterpartyAccountId());
+            }
+
+            System.out.println("Amount : " + transaction.getAmount() + " DH");
+            System.out.println("Time   : " + transaction.getTimestamp());
+        }
+        System.out.println("============================");
+
     }
 }
